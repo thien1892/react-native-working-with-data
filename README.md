@@ -174,6 +174,15 @@ export default DisplayAnImage;
 
 # 4. AsyncStorage
 
+- Install
+```bash
+# npm
+npm install @react-native-async-storage/async-storage
+# Expo CLI
+npx expo install @react-native-async-storage/async-storage
+npx expo install expo-sqlite
+```
+
 ## 4.1. Using the setItem Method
 - When using setItem with an existing key, the value provided replaces the previously stored value, resulting in an override operation.
 ```javascript
@@ -248,7 +257,68 @@ clearAllData = async () => {
  }
 }
 ```
-# 5. Reading
+
+# 5. SQL in React Native
+
+## 5.1. Reading and Writing Data with SQLite
+
+```javascript
+import * as SQLite from 'expo-sqlite';
+const db = SQLite.openDatabase('little_lemon');
+
+useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        'create table if not exists customers (id integer primary key not null, uid text, name text);'
+      );
+      tx.executeSql('select * from customers', [], (_, { rows }) => {
+        const customers = rows._array.map((item) => ({
+          uid: item.uid,
+          name: item.name,
+        }));
+        setCustomers(customers);
+      });
+    });
+  }, []);
+
+
+```
+
+## 5.2. Updating and Deleting Data with SQLite
+- update
+```javascript
+const updateDish = async (dishId, newName) => {
+ return new Promise((resolve, reject) => {
+   db.transaction(
+     tx => {
+       tx.executeSql(`update menu set name=? where uid=${dishId}`, [newName]);
+     },
+     reject,
+     resolve
+   );
+ });
+};
+```
+- delete
+```javascript
+const deleteDish = async (dishId) => {
+ return new Promise((resolve, reject) => {
+   db.transaction(
+     tx => {
+       tx.executeSql('delete from menu where id = ?', [dishId]);
+     },
+     reject,
+     resolve
+   );
+ });
+};
+```
+
+# 6. Reading
 - [Fetching images in React Native](https://reactnative.dev/docs/image)
 - [JSON Mock API and Mock response](https://beta.reactjs.org/learn/thinking-in-react#step-1-break-the-ui-into-a-component-hierarchy)
 - [SQL Tutorial - SQL Cheat Sheet](https://www.sqltutorial.org/wp-content/uploads/2016/04/SQL-cheat-sheet.pdf)
+- [Async Storage official documentation](https://react-native-async-storage.github.io/async-storage/)
+- [Expo documentation: AsyncStorage](https://docs.expo.dev/versions/latest/sdk/async-storage/)
+- [Expo-SQLite official documentation](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+- [SQLite official documentation](https://www.sqlite.org/index.html)
